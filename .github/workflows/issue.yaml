@@ -1,0 +1,44 @@
+name: Reproduce globbing issue w/ too many files
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  reproduce-glob-issue-too-many-files:
+    name: Reproduce globbing issue w/ too many files
+    runs-on:
+      - ubuntu-latest
+    steps:
+      - name: Generate 100k files
+        run: |
+          mkdir -p ${{ runner.temp }}/test
+          for i in {1..100000}
+          do
+            echo $i > ${{ runner.temp }}/test/f$i.txt
+          done
+      # This one is fine.
+      - name: Glob 100k files
+        uses: actions/github-script@v6.4.1
+        with:
+          script: |
+            const path = `${process.env.RUNNER_TEMP}/test/*.txt`
+            const globber = await glob.create(path)
+            const files = await globber.glob()
+            console.log(files.length)
+      - name: Generate additional 100k files
+        run: |
+          mkdir -p ${{ runner.temp }}/test
+          for i in {100000..200000}
+          do
+            echo $i > ${{ runner.temp }}/test/f$i.txt
+          done
+      # This one fails with the RangeError.
+      - name: Glob 200k files
+        uses: actions/github-script@v6.4.1
+        with:
+          script: |
+            const path = `${process.env.RUNNER_TEMP}/test/*.txt`
+            const globber = await glob.create(path)
+            const files = await globber.glob()
+            console.log(files.length)
+
