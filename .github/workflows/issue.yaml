@@ -7,7 +7,7 @@ jobs:
   reproduce-glob-issue-too-many-files:
     name: Reproduce globbing issue w/ too many files
     runs-on:
-      - ubuntu
+      - ubuntu-latest
     steps:
       - name: Generate 100k files
         run: |
